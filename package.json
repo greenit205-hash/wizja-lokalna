@@ -1,0 +1,11 @@
+{
+  "name": "wizja-lokalna",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lista kontrolna wizji lokalnej - magazyn energii, EMS, ladowarka",
+  "scripts": {
+    "test": "node tests/test-wizja.js",
+    "test:mutacje": "python3 tests/mutacje.py"
+  },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}

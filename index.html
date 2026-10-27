@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2c3e50">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wizja lokalna">
+<title>Wizja lokalna — magazyn energii, EMS, ładowarka</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --dark:#2c3e50; --gold:#d4af37; --line:#ced4da; --bg:#f0f2f5;
+  --ok:#198754; --warn:#fd7e14; --bad:#b02a37; --muted:#6c757d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:#212529;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px; -webkit-text-size-adjust:100%; overscroll-behavior-y:contain;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:10px 10px 90px}
+
+/* ---------- pasek górny ---------- */
+.topbar{
+  position:sticky; top:0; z-index:50; background:var(--dark); color:#fff;
+  padding:8px 10px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+  border-bottom:3px solid var(--gold);
+}
+.topbar h1{font-size:1rem; margin:0 10px 0 0; white-space:nowrap}
+.topbar .stan{font-size:.78rem; opacity:.85; margin-left:auto; white-space:nowrap}
+.btn{
+  border:1px solid var(--line); background:#fff; color:#212529; border-radius:8px;
+  padding:9px 12px; font-size:.9rem; font-weight:600; cursor:pointer; white-space:nowrap;
+  min-height:42px;
+}
+.btn:active{transform:translateY(1px)}
+.btn.g{background:var(--gold); border-color:var(--gold); color:#fff}
+.btn.d{background:#495057; border-color:#495057; color:#fff}
+.btn.r{background:#fff; border-color:var(--bad); color:var(--bad)}
+.btn.sm{padding:5px 9px; font-size:.8rem; min-height:34px}
+
+/* ---------- spis treści ---------- */
+.nav{display:flex; gap:6px; overflow-x:auto; padding:8px 0; position:sticky; top:52px;
+     background:var(--bg); z-index:40; border-bottom:1px solid var(--line)}
+.nav a{
+  text-decoration:none; color:var(--dark); background:#fff; border:1px solid var(--line);
+  border-radius:20px; padding:6px 12px; font-size:.82rem; font-weight:600; white-space:nowrap;
+}
+
+/* ---------- sekcje ---------- */
+.card{background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin:14px 0}
+.card > h2{
+  margin:0; padding:12px 14px; font-size:1rem; color:#fff; background:var(--dark);
+  border-radius:12px 12px 0 0; border-bottom:3px solid var(--gold);
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.card > h2 .licz{font-size:.78rem; font-weight:400; opacity:.85}
+.body{padding:12px 14px}
+.hint{font-size:.82rem; color:var(--muted); margin:0 0 10px}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px}
+.grid.w2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.pole{display:flex; flex-direction:column; gap:3px}
+.pole > label{font-size:.78rem; font-weight:700; color:var(--muted)}
+input[type=text], input[type=number], input[type=date], input[type=time], select, textarea{
+  width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px;
+  font-size:.95rem; font-family:inherit; background:#fff; min-height:42px;
+}
+textarea{min-height:76px; resize:vertical}
+.pelna{grid-column:1/-1}
+
+/* przełączniki tak/nie/nd */
+.wybor{display:flex; gap:4px; flex-wrap:wrap}
+.wybor button{
+  flex:1; min-width:58px; border:1px solid var(--line); background:#fff; border-radius:8px;
+  padding:9px 6px; font-size:.85rem; font-weight:600; cursor:pointer; min-height:42px;
+}
+.wybor button.on{background:var(--dark); color:#fff; border-color:var(--dark)}
+.wybor button.on.tak{background:var(--ok); border-color:var(--ok)}
+.wybor button.on.nie{background:var(--bad); border-color:var(--bad)}
+
+/* ---------- tabele powtarzalne ---------- */
+.tabela{width:100%; border-collapse:collapse; font-size:.86rem}
+.tabela th, .tabela td{border:1px solid var(--line); padding:4px; vertical-align:top}
+.tabela th{background:#e9ecef; font-size:.76rem; text-align:left}
+.tabela input, .tabela select, .tabela textarea{
+  border:none; padding:6px 4px; min-height:36px; font-size:.85rem; border-radius:4px;
+}
+.tabela textarea{min-height:36px}
+.tabela input:focus, .tabela select:focus, .tabela textarea:focus{outline:2px solid var(--gold)}
+.przewijak{overflow-x:auto; -webkit-overflow-scrolling:touch}
+.nrkom{width:34px; text-align:center; font-weight:700; color:var(--muted); background:#f8f9fa}
+.usunkom{width:40px; text-align:center}
+
+/* ---------- zdjęcia ---------- */
+.fotki{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px}
+.fotka{border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#fff}
+.fotka img{width:100%; height:150px; object-fit:cover; display:block; background:#e9ecef}
+.fotka .op{padding:6px; display:flex; flex-direction:column; gap:4px}
+.fotka input, .fotka select{font-size:.8rem; min-height:36px; padding:6px}
+.pusto{color:var(--muted); font-size:.86rem; padding:14px; text-align:center;
+       border:2px dashed var(--line); border-radius:10px}
+
+/* ---------- szkice ---------- */
+.plotno{border:1px solid var(--line); border-radius:10px; background:#fff; touch-action:none;
+        width:100%; display:block}
+.narz{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; align-items:center}
+.kolor{width:34px; height:34px; border-radius:50%; border:2px solid #fff;
+       box-shadow:0 0 0 1px var(--line); cursor:pointer}
+.kolor.on{box-shadow:0 0 0 3px var(--dark)}
+
+/* ---------- okno ---------- */
+.okno{display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000;
+      align-items:center; justify-content:center; padding:12px}
+.okno .tresc{background:#fff; border-radius:12px; padding:16px; width:min(96vw,520px);
+             max-height:90vh; overflow:auto}
+
+/* ---------- WYDRUK / PDF ---------- */
+@media print{
+  @page{size:A4 portrait; margin:12mm 10mm}
+  body{background:#fff; font-size:10.5pt}
+  .topbar,.nav,.nodruku,.btn,.usunkom,.okno{display:none !important}
+  .wrap{max-width:none; padding:0}
+  .card{box-shadow:none; border:1px solid #adb5bd; border-radius:0; margin:0 0 6mm;
+        break-inside:auto; page-break-inside:auto}
+  .card > h2{background:#2c3e50 !important; color:#fff !important; border-radius:0;
+             -webkit-print-color-adjust:exact; print-color-adjust:exact; font-size:11pt; padding:5px 8px}
+  .body{padding:5px 8px}
+  .grid{display:block}
+  .pole{display:block; margin-bottom:3px; break-inside:avoid}
+  .pole > label{display:inline-block; min-width:40%; vertical-align:top}
+  input,select,textarea{
+    border:none !important; border-bottom:1px dotted #adb5bd !important; border-radius:0;
+    min-height:0 !important; padding:1px 2px !important; font-size:10.5pt; width:auto;
+    display:inline-block; min-width:52%;
+    -webkit-appearance:none; appearance:none; background:transparent !important;
+  }
+  textarea{display:block; width:100% !important; min-height:0 !important; height:auto}
+  .wybor{display:inline-block}
+  .wybor button{display:none}
+  .wybor button.on{display:inline-block; border:1px solid #495057 !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:0 6px; min-height:0}
+  .tabela{font-size:8.5pt}
+  .tabela th,.tabela td{padding:2px 3px}
+  .tabela tr{break-inside:avoid}
+  .przewijak{overflow:visible}
+  .fotki{display:grid; grid-template-columns:1fr 1fr; gap:4mm}
+  .fotka{break-inside:avoid; border:1px solid #adb5bd}
+  .fotka img{height:auto; max-height:70mm; object-fit:contain}
+  .hint,.pusto{display:none}
+  .plotno{border:1px solid #adb5bd; max-height:120mm; width:100%; object-fit:contain}
+  .drukuj-tylko{display:block !important}
+  .stopka-druk{display:block !important; font-size:8pt; color:#6c757d; margin-top:4mm}
+}
+.drukuj-tylko,.stopka-druk{display:none}
+</style>
+</head>
+<body>
+<div class="topbar nodruku">
+  <h1>📋 Wizja lokalna</h1>
+  <button class="btn sm" onclick="nowaWizja()">🗒️ Nowa</button>
+  <button class="btn sm" onclick="zapiszPlik()">💾 Zapisz JSON</button>
+  <button class="btn sm" onclick="document.getElementById('wczytajPlik').click()">📂 Wczytaj</button>
+  <input type="file" id="wczytajPlik" accept=".json,application/json" style="display:none" onchange="wczytajZPliku(this)">
+  <button class="btn sm g" onclick="drukujPdf()">🖨️ PDF</button>
+  <span class="stan" id="stanZapisu">—</span>
+</div>
+
+<div class="wrap">
+
+<div class="nav nodruku">
+  <a href="#s-obiekt">Obiekt</a>
+  <a href="#s-przylacze">Przyłącze</a>
+  <a href="#s-magazyn">Magazyn</a>
+  <a href="#s-falownik">Falownik</a>
+  <a href="#s-ems">EMS</a>
+  <a href="#s-ladowarka">Ładowarka</a>
+  <a href="#s-trasy">Trasy kablowe</a>
+  <a href="#s-przebicia">Przebicia</a>
+  <a href="#s-warunki">Warunki</a>
+  <a href="#s-szkice">Szkice</a>
+  <a href="#s-foto">Zdjęcia</a>
+  <a href="#s-ustalenia">Ustalenia</a>
+</div>
+
+<!-- ============ A. OBIEKT ============ -->
+<div class="card" id="s-obiekt">
+  <h2>A. Obiekt i spotkanie</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Nazwa zadania / postępowania</label>
+        <input type="text" data-p="zadanie"></div>
+      <div class="pole"><label>Inwestor / zamawiający</label><input type="text" data-p="inwestor"></div>
+      <div class="pole pelna"><label>Adres obiektu</label><input type="text" data-p="adres"></div>
+      <div class="pole"><label>Data wizji</label><input type="date" data-p="data"></div>
+      <div class="pole"><label>Godzina</label><input type="time" data-p="godzina"></div>
+      <div class="pole"><label>Prowadzący wizję</label><input type="text" data-p="prowadzacy"></div>
+      <div class="pole"><label>Osoba ze strony inwestora</label><input type="text" data-p="osobaInwestor"></div>
+      <div class="pole"><label>Telefon kontaktowy</label><input type="text" data-p="telefon"></div>
+      <div class="pole"><label>E-mail kontaktowy</label><input type="text" data-p="email"></div>
+      <div class="pole pelna"><label>Pozostali uczestnicy</label><input type="text" data-p="uczestnicy"></div>
+      <div class="pole pelna"><label>Rodzaj i przeznaczenie budynku</label>
+        <input type="text" data-p="rodzajBudynku" placeholder="np. budynek biurowy, hala, użyteczności publicznej"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ B. PRZYŁĄCZE ============ -->
+<div class="card" id="s-przylacze">
+  <h2>B. Przyłącze i rozdzielnica główna</h2>
+  <div class="body">
+    <p class="hint">Od tego zależy, czy magazyn i ładowarka w ogóle się zmieszczą w mocy przyłączeniowej.</p>
+    <div class="grid">
+      <div class="pole"><label>Moc przyłączeniowa [kW]</label><input type="number" step="0.1" data-p="mocPrzyl"></div>
+      <div class="pole"><label>Zabezpieczenie przedlicznikowe [A]</label><input type="text" data-p="zabPrzedl"></div>
+      <div class="pole"><label>Taryfa</label><input type="text" data-p="taryfa" placeholder="np. C21, B23"></div>
+      <div class="pole"><label>Układ sieci</label>
+        <select data-p="ukladSieci">
+          <option value="">—</option><option>TN-S</option><option>TN-C</option>
+          <option>TN-C-S</option><option>TT</option><option>do ustalenia</option>
+        </select></div>
+      <div class="pole"><label>Nr licznika / PPE</label><input type="text" data-p="ppe"></div>
+      <div class="pole"><label>Lokalizacja licznika</label><input type="text" data-p="lokLicznik"></div>
+      <div class="pole"><label>Lokalizacja rozdzielnicy głównej</label><input type="text" data-p="lokRG"></div>
+      <div class="pole"><label>Wolne miejsce w RG [mod.]</label><input type="text" data-p="miejsceRG"></div>
+      <div class="pole pelna"><label>Istniejąca instalacja PV</label>
+        <input type="text" data-p="istniejacePV" placeholder="moc, falownik, rok, nr umowy prosumenckiej"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Rozdzielnica dostępna bez ograniczeń</label>
+        <div class="wybor" data-w="rgDostep"></div></div>
+      <div class="pole"><label>Jest zapas miejsca na aparaty</label>
+        <div class="wybor" data-w="rgZapas"></div></div>
+      <div class="pole"><label>Dostępna szyna PE i N</label>
+        <div class="wybor" data-w="rgPEN"></div></div>
+      <div class="pole"><label>Potrzebna wymiana / rozbudowa RG</label>
+        <div class="wybor" data-w="rgWymiana"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi do przyłącza i rozdzielnicy</label>
+      <textarea data-p="uwagiPrzylacze"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ C. MAGAZYN ============ -->
+<div class="card" id="s-magazyn">
+  <h2>C. Magazyn energii — miejsce montażu</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Pomieszczenie / lokalizacja</label><input type="text" data-p="magPom"></div>
+      <div class="pole"><label>Kondygnacja</label><input type="text" data-p="magKond"></div>
+      <div class="pole"><label>Sposób montażu</label>
+        <select data-p="magMontaz">
+          <option value="">—</option><option>stojący na posadzce</option>
+          <option>na ścianie</option><option>na cokole / ramie</option>
+          <option>szafa zewnętrzna</option><option>do ustalenia</option>
+        </select></div>
+      <div class="pole"><label>Dostępna powierzchnia / wymiary [m]</label><input type="text" data-p="magWymiary"></div>
+      <div class="pole"><label>Wysokość pomieszczenia [m]</label><input type="number" step="0.01" data-p="magWysokosc"></div>
+      <div class="pole"><label>Nośność posadzki</label><input type="text" data-p="magNosnosc"></div>
+      <div class="pole"><label>Materiał ściany / posadzki</label><input type="text" data-p="magSciana"></div>
+      <div class="pole"><label>Temperatura zimą / latem [°C]</label><input type="text" data-p="magTemp"></div>
+      <div class="pole"><label>Wentylacja</label>
+        <select data-p="magWent">
+          <option value="">—</option><option>grawitacyjna</option><option>mechaniczna</option>
+          <option>brak</option><option>do wykonania</option>
+        </select></div>
+      <div class="pole"><label>Odległość do rozdzielnicy [m]</label><input type="number" step="0.1" data-p="magOdlRG"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Droga transportowa na miejsce</label><div class="wybor" data-w="magTransport"></div></div>
+      <div class="pole"><label>Pomieszczenie suche, bez zalewania</label><div class="wybor" data-w="magSuche"></div></div>
+      <div class="pole"><label>Wymagania p.poż. ustalone</label><div class="wybor" data-w="magPpoz"></div></div>
+      <div class="pole"><label>Potrzebne prace budowlane</label><div class="wybor" data-w="magBud"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi — magazyn</label>
+      <textarea data-p="uwagiMagazyn" placeholder="ograniczenia, kolizje, co trzeba dopytać"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ D. FALOWNIK ============ -->
+<div class="card" id="s-falownik">
+  <h2>D. Falownik / przekształtnik</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Pomieszczenie / lokalizacja</label><input type="text" data-p="falPom"></div>
+      <div class="pole"><label>Montaż</label>
+        <select data-p="falMontaz">
+          <option value="">—</option><option>ściana murowana</option><option>ściana GK / stelaż</option>
+          <option>stojak / rama</option><option>na zewnątrz</option><option>do ustalenia</option>
+        </select></div>
+      <div class="pole"><label>Wysokość montażu [m]</label><input type="number" step="0.01" data-p="falWys"></div>
+      <div class="pole"><label>Odstępy od ścian / urządzeń</label><input type="text" data-p="falOdstepy"></div>
+      <div class="pole"><label>Odległość falownik ↔ magazyn [m]</label><input type="number" step="0.1" data-p="falOdlMag"></div>
+      <div class="pole"><label>Odległość falownik ↔ RG [m]</label><input type="number" step="0.1" data-p="falOdlRG"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Miejsce zacienione / bez nasłonecznienia</label><div class="wybor" data-w="falZacien"></div></div>
+      <div class="pole"><label>Odprowadzenie ciepła wystarczające</label><div class="wybor" data-w="falChlodz"></div></div>
+      <div class="pole"><label>Hałas nie przeszkadza</label><div class="wybor" data-w="falHalas"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi — falownik</label>
+      <textarea data-p="uwagiFalownik"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ E. EMS ============ -->
+<div class="card" id="s-ems">
+  <h2>E. System EMS — sterowanie i pomiary</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Lokalizacja sterownika EMS</label><input type="text" data-p="emsLok"></div>
+      <div class="pole"><label>Zasilanie sterownika</label><input type="text" data-p="emsZasil" placeholder="skąd, jakie zabezpieczenie"></div>
+      <div class="pole"><label>Łącze internetowe</label>
+        <select data-p="emsNet">
+          <option value="">—</option><option>LAN — gniazdo na miejscu</option>
+          <option>LAN — do doprowadzenia</option><option>WiFi</option>
+          <option>LTE / router GSM</option><option>brak — do zapewnienia przez inwestora</option>
+        </select></div>
+      <div class="pole"><label>Odległość do punktu sieci [m]</label><input type="number" step="0.1" data-p="emsOdlNet"></div>
+      <div class="pole"><label>Miejsce montażu liczników / CT</label><input type="text" data-p="emsCT"></div>
+      <div class="pole"><label>Magistrala komunikacyjna</label>
+        <select data-p="emsBus">
+          <option value="">—</option><option>Modbus RTU (RS485)</option><option>Modbus TCP</option>
+          <option>CAN</option><option>inna</option><option>do ustalenia</option>
+        </select></div>
+      <div class="pole pelna"><label>Urządzenia do integracji</label>
+        <input type="text" data-p="emsUrzadzenia" placeholder="falownik PV, magazyn, ładowarka, licznik, pompa ciepła…"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Punkt pomiarowy w RG dostępny</label><div class="wybor" data-w="emsPomiar"></div></div>
+      <div class="pole"><label>Trasa komunikacji oddzielona od siły</label><div class="wybor" data-w="emsRozdziel"></div></div>
+      <div class="pole"><label>Zdalny dostęp dopuszczony przez inwestora</label><div class="wybor" data-w="emsZdalny"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi — EMS</label>
+      <textarea data-p="uwagiEms"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ F. ŁADOWARKA ============ -->
+<div class="card" id="s-ladowarka">
+  <h2>F. Ładowarka samochodowa</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Lokalizacja</label><input type="text" data-p="ladLok"></div>
+      <div class="pole"><label>Montaż</label>
+        <select data-p="ladMontaz">
+          <option value="">—</option><option>na ścianie</option><option>na słupku / stojaku</option>
+          <option>wiata</option><option>do ustalenia</option>
+        </select></div>
+      <div class="pole"><label>Moc i typ</label><input type="text" data-p="ladMoc" placeholder="np. 22 kW AC, 2× Typ 2"></div>
+      <div class="pole"><label>Liczba punktów ładowania</label><input type="number" data-p="ladLiczba"></div>
+      <div class="pole"><label>Długość trasy zasilania [m]</label><input type="number" step="0.1" data-p="ladTrasa"></div>
+      <div class="pole"><label>Zabezpieczenie / RCD</label><input type="text" data-p="ladZab" placeholder="np. B32, RCD typ A + DC 6 mA"></div>
+      <div class="pole"><label>Nawierzchnia na trasie</label>
+        <select data-p="ladNawierzchnia">
+          <option value="">—</option><option>trawnik / grunt</option><option>kostka brukowa</option>
+          <option>asfalt</option><option>beton</option><option>mieszana</option>
+        </select></div>
+      <div class="pole"><label>Odległość od RG [m]</label><input type="number" step="0.1" data-p="ladOdlRG"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Miejsce postojowe wyznaczone</label><div class="wybor" data-w="ladMiejsce"></div></div>
+      <div class="pole"><label>Potrzebne roboty ziemne</label><div class="wybor" data-w="ladZiemne"></div></div>
+      <div class="pole"><label>Potrzebne oznakowanie / ochrona słupka</label><div class="wybor" data-w="ladOchrona"></div></div>
+      <div class="pole"><label>Ładowarka sterowana z EMS</label><div class="wybor" data-w="ladEms"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi — ładowarka</label>
+      <textarea data-p="uwagiLadowarka"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ G. TRASY KABLOWE ============ -->
+<div class="card" id="s-trasy">
+  <h2>G. Trasy kablowe <span class="licz" id="liczTras"></span></h2>
+  <div class="body">
+    <p class="hint">Jeden wiersz = jeden odcinek. Sposób prowadzenia wypełnij od razu na miejscu —
+      to z tego wyjdzie wycena koryt, rur i robocizny.</p>
+    <div class="przewijak">
+      <table class="tabela">
+        <thead><tr>
+          <th class="nrkom">#</th>
+          <th style="min-width:110px">Od</th>
+          <th style="min-width:110px">Do</th>
+          <th style="min-width:92px">Rodzaj</th>
+          <th style="min-width:66px">Dł. [m]</th>
+          <th style="min-width:130px">Sposób prowadzenia</th>
+          <th style="min-width:120px">Koryto / rura</th>
+          <th style="min-width:120px">Przewód</th>
+          <th style="min-width:140px">Uwagi</th>
+          <th class="usunkom nodruku"></th>
+        </tr></thead>
+        <tbody id="cialoTras"></tbody>
+      </table>
+    </div>
+    <button class="btn sm g nodruku" style="margin-top:8px" onclick="dodajTrase()">+ Dodaj odcinek</button>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi ogólne do tras</label>
+      <textarea data-p="uwagiTrasy"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ H. PRZEBICIA ============ -->
+<div class="card" id="s-przebicia">
+  <h2>H. Przebicia i prace budowlane <span class="licz" id="liczPrzebic"></span></h2>
+  <div class="body">
+    <p class="hint">Wszystko, co wymaga wiercenia, kucia albo kopania — razem z tym, kto to robi.</p>
+    <div class="przewijak">
+      <table class="tabela">
+        <thead><tr>
+          <th class="nrkom">#</th>
+          <th style="min-width:130px">Miejsce</th>
+          <th style="min-width:100px">Rodzaj</th>
+          <th style="min-width:110px">Przegroda</th>
+          <th style="min-width:76px">Śr./wym.</th>
+          <th style="min-width:70px">Szt.</th>
+          <th style="min-width:100px">Wykonuje</th>
+          <th style="min-width:140px">Uwagi</th>
+          <th class="usunkom nodruku"></th>
+        </tr></thead>
+        <tbody id="cialoPrzebic"></tbody>
+      </table>
+    </div>
+    <button class="btn sm g nodruku" style="margin-top:8px" onclick="dodajPrzebicie()">+ Dodaj pozycję</button>
+  </div>
+</div>
+
+<!-- ============ I. WARUNKI ============ -->
+<div class="card" id="s-warunki">
+  <h2>I. Warunki prowadzenia robót</h2>
+  <div class="body">
+    <div class="grid">
+      <div class="pole"><label>Godziny dostępu do obiektu</label><input type="text" data-p="godzinyDostep"></div>
+      <div class="pole"><label>Możliwe wyłączenia zasilania</label><input type="text" data-p="wylaczenia"></div>
+      <div class="pole"><label>Miejsce składowania materiału</label><input type="text" data-p="skladowanie"></div>
+      <div class="pole"><label>Dojazd i rozładunek</label><input type="text" data-p="dojazd"></div>
+      <div class="pole"><label>Zasilanie placu budowy</label><input type="text" data-p="zasilanieBudowy"></div>
+      <div class="pole"><label>Wymagane szkolenia / przepustki</label><input type="text" data-p="przepustki"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Potrzebne rusztowanie / podnośnik</label><div class="wybor" data-w="rusztowanie"></div></div>
+      <div class="pole"><label>Obiekt czynny w trakcie robót</label><div class="wybor" data-w="obiektCzynny"></div></div>
+      <div class="pole"><label>Wymagany nadzór inwestora</label><div class="wybor" data-w="nadzor"></div></div>
+      <div class="pole"><label>Jest dokumentacja istniejącej instalacji</label><div class="wybor" data-w="dokumentacja"></div></div>
+    </div>
+    <div class="pole pelna" style="margin-top:10px"><label>Uwagi BHP i organizacyjne</label>
+      <textarea data-p="uwagiBhp"></textarea></div>
+  </div>
+</div>
+
+<!-- ============ J. SZKICE ============ -->
+<div class="card" id="s-szkice">
+  <h2>J. Szkice i rysunki <span class="licz" id="liczSzkicow"></span></h2>
+  <div class="body">
+    <p class="hint">Rysuj palcem albo wgraj PNG ze Szkicownika. Każdy szkic trafia na wydruk.</p>
+    <div class="narz nodruku">
+      <button class="btn sm" id="nTrybRys" onclick="setTrybRys('rysuj')">✏️ Rysuj</button>
+      <button class="btn sm" id="nTrybLin" onclick="setTrybRys('linia')">➖ Linia</button>
+      <button class="btn sm" id="nTrybTekst" onclick="setTrybRys('tekst')">🔤 Tekst</button>
+      <button class="btn sm" id="nTrybGum" onclick="setTrybRys('gumka')">🧽 Gumka</button>
+      <span style="display:flex;gap:6px;margin-left:6px">
+        <span class="kolor on" style="background:#212529" onclick="setKolor('#212529',this)"></span>
+        <span class="kolor" style="background:#b02a37" onclick="setKolor('#b02a37',this)"></span>
+        <span class="kolor" style="background:#0d6efd" onclick="setKolor('#0d6efd',this)"></span>
+        <span class="kolor" style="background:#198754" onclick="setKolor('#198754',this)"></span>
+      </span>
+      <button class="btn sm" onclick="cofnijRys()">↩️ Cofnij</button>
+      <button class="btn sm r" onclick="czyscPlotno()">🗑️ Wyczyść</button>
+      <button class="btn sm g" onclick="zapiszSzkic()">➕ Dodaj szkic do raportu</button>
+      <button class="btn sm" onclick="document.getElementById('wgrajSzkic').click()">📂 Wgraj PNG</button>
+      <input type="file" id="wgrajSzkic" accept="image/*" multiple style="display:none" onchange="wgrajSzkice(this)">
+    </div>
+    <canvas id="plotno" class="plotno nodruku" width="1200" height="800"></canvas>
+    <div id="listaSzkicow" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ============ K. ZDJĘCIA ============ -->
+<div class="card" id="s-foto">
+  <h2>K. Dokumentacja fotograficzna <span class="licz" id="liczZdjec"></span></h2>
+  <div class="body">
+    <p class="hint">Zdjęcia są zmniejszane do 1600 px, żeby plik nadawał się do wysłania.
+      Każdemu podpisz, czego dotyczy — po tygodniu nie będziesz pamiętał.</p>
+    <div class="narz nodruku">
+      <button class="btn sm g" onclick="document.getElementById('aparat').click()">📷 Zrób zdjęcie</button>
+      <input type="file" id="aparat" accept="image/*" capture="environment" style="display:none" onchange="dodajZdjecia(this)">
+      <button class="btn sm" onclick="document.getElementById('zGalerii').click()">🖼️ Z galerii</button>
+      <input type="file" id="zGalerii" accept="image/*" multiple style="display:none" onchange="dodajZdjecia(this)">
+      <span class="stan" id="rozmiarZdjec" style="color:var(--muted)"></span>
+    </div>
+    <div class="fotki" id="galeria"></div>
+    <div class="pusto nodruku" id="brakZdjec">Brak zdjęć — naciśnij „Zrób zdjęcie".</div>
+  </div>
+</div>
+
+<!-- ============ L. USTALENIA ============ -->
+<div class="card" id="s-ustalenia">
+  <h2>L. Ustalenia i wnioski</h2>
+  <div class="body">
+    <div class="pole pelna"><label>Ustalenia ze spotkania</label>
+      <textarea data-p="ustalenia" style="min-height:120px"></textarea></div>
+    <div class="pole pelna" style="margin-top:10px"><label>Co dostarcza / zapewnia inwestor</label>
+      <textarea data-p="poStronieInwestora"></textarea></div>
+    <div class="pole pelna" style="margin-top:10px"><label>Kwestie do wyjaśnienia przed ofertą</label>
+      <textarea data-p="doWyjasnienia"></textarea></div>
+    <div class="pole pelna" style="margin-top:10px"><label>Wnioski wykonawcy</label>
+      <textarea data-p="wnioski"></textarea></div>
+    <div class="grid" style="margin-top:10px">
+      <div class="pole"><label>Podpis — wykonawca</label><input type="text" data-p="podpisWykonawca"></div>
+      <div class="pole"><label>Podpis — inwestor</label><input type="text" data-p="podpisInwestor"></div>
+    </div>
+    <div class="stopka-druk" id="stopkaDruk"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ===================================================================
+   WIZJA LOKALNA — lista kontrolna do wypełnienia na tablecie.
+   Jeden plik, działa offline, dane zostają w przeglądarce.
+   =================================================================== */
+
+// --------------------------------------------------------------- stan
+let dane = pustyDokument();
+
+function pustyDokument() {
+  return {
+    format: 'wizja-lokalna',
+    wersja: 1,
+    pola: {},        // zwykłe pola tekstowe/liczbowe/select
+    wybory: {},      // przełączniki tak / nie / nie dotyczy
+    trasy: [],
+    przebicia: [],
+    zdjecia: [],
+    szkice: [],
+    zapisano: null
+  };
+}
+
+// --------------------------------------------------------------- słowniki
+// Listy wzięte z tego, co realnie wchodzi w grę przy magazynie, EMS i ładowarce.
+const SPOSOBY = [
+  'natynkowo — listwa PCV',
+  'natynkowo — korytko PCV',
+  'natynkowo — korytko metalowe',
+  'natynkowo — drabinka kablowa',
+  'natynkowo — uchwyty / opaski',
+  'natynkowo — rura RL',
+  'podtynkowo — bruzda',
+  'podtynkowo — rura karbowana',
+  'w suficie podwieszanym',
+  'w kanale podłogowym',
+  'w ziemi — rura osłonowa',
+  'w ziemi — bezpośrednio',
+  'istniejąca trasa / dołożenie',
+  'do ustalenia'
+];
+
+const KORYTA = [
+  'LS 12×12', 'LS 16×16', 'LN 25×16', 'LN 40×25', 'LN 60×40', 'LN 100×60',
+  'korytko 50×50', 'korytko 100×60', 'korytko 200×60',
+  'drabinka 200', 'drabinka 300',
+  'RL 20', 'RL 25', 'RL 32',
+  'peszel 20', 'peszel 25', 'peszel 32',
+  'DVK 50', 'DVK 75', 'DVK 110',
+  'SRS 50', 'SRS 75', 'SRS 110',
+  'bez osłony'
+];
+
+const RODZAJE_TRAS = [
+  'DC — magazyn', 'AC — falownik', 'AC — ładowarka', 'AC — zasilanie EMS',
+  'komunikacja / sterowanie', 'LAN', 'uziemienie / PE', 'pomiar CT', 'inne'
+];
+
+const PRZEWODY = [
+  'YDYżo 3×1,5', 'YDYżo 3×2,5', 'YDYżo 5×2,5', 'YDYżo 5×4', 'YDYżo 5×6',
+  'YKY 5×6', 'YKY 5×10', 'YKY 5×16', 'YKY 5×25', 'YKXS 5×16',
+  'H07RN-F 5×6', 'solarny 1×6', 'solarny 1×10',
+  'LgY 16 ż/z', 'LgY 25 ż/z', 'UTP kat. 5e', 'UTP kat. 6',
+  'YnTKSY 2×2×0,8', 'ekranowany 2×2×0,5'
+];
+
+const RODZAJE_PRZEBIC = ['wiercenie', 'kucie bruzdy', 'przekucie ściany', 'przekucie stropu',
+                         'wykop', 'przewiert', 'montaż wspornika', 'inne'];
+const PRZEGRODY = ['ściana murowana', 'ściana żelbetowa', 'ściana GK', 'strop',
+                   'fundament', 'elewacja', 'posadzka', 'grunt'];
+const WYKONAWCY = ['wykonawca', 'inwestor', 'do ustalenia'];
+
+const PRZYPISANIA = ['—', 'przyłącze / RG', 'magazyn', 'falownik', 'EMS',
+                     'ładowarka', 'trasa kablowa', 'przebicie', 'otoczenie', 'inne'];
+
+// --------------------------------------------------------------- pomocnicze
+function el(id) { return document.getElementById(id); }
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function opcje(lista, wybrana) {
+  return '<option value=""></option>' + lista.map(o =>
+    '<option' + (o === wybrana ? ' selected' : '') + '>' + esc(o) + '</option>').join('');
+}
+
+// --------------------------------------------------------------- przełączniki tak/nie/nd
+const STANY = [
+  { k: 'tak', t: 'Tak' },
+  { k: 'nie', t: 'Nie' },
+  { k: 'nd', t: 'n/d' }
+];
+
+function zbudujWybory() {
+  document.querySelectorAll('[data-w]').forEach(box => {
+    const klucz = box.dataset.w;
+    box.innerHTML = STANY.map(s =>
+      '<button type="button" data-k="' + s.k + '">' + s.t + '</button>').join('');
+    box.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        // ponowne naciśnięcie tego samego odznacza - łatwo się pomylić palcem
+        dane.wybory[klucz] = (dane.wybory[klucz] === b.dataset.k) ? null : b.dataset.k;
+        odswiezWybor(box);
+        zapiszPozniej();
+      });
+    });
+  });
+}
+
+function odswiezWybor(box) {
+  const wart = dane.wybory[box.dataset.w];
+  box.querySelectorAll('button').forEach(b => {
+    const on = (b.dataset.k === wart);
+    b.classList.toggle('on', on);
+    b.classList.toggle('tak', b.dataset.k === 'tak');
+    b.classList.toggle('nie', b.dataset.k === 'nie');
+  });
+}
+
+function odswiezWszystkieWybory() {
+  document.querySelectorAll('[data-w]').forEach(odswiezWybor);
+}
+
+// --------------------------------------------------------------- pola zwykłe
+function podepnijPola() {
+  document.querySelectorAll('[data-p]').forEach(input => {
+    input.addEventListener('input', () => {
+      dane.pola[input.dataset.p] = input.value;
+      zapiszPozniej();
+    });
+  });
+}
+
+function wypelnijPola() {
+  document.querySelectorAll('[data-p]').forEach(input => {
+    const v = dane.pola[input.dataset.p];
+    input.value = (v == null ? '' : v);
+  });
+}
+
+// --------------------------------------------------------------- trasy kablowe
+function pustaTrasa() {
+  return { od: '', do: '', rodzaj: '', dlugosc: '', sposob: '', koryto: '', przewod: '', uwagi: '' };
+}
+
+function dodajTrase() {
+  dane.trasy.push(pustaTrasa());
+  rysujTrasy();
+  zapiszPozniej();
+}
+
+function usunTrase(i) {
+  if (!confirm('Usunąć odcinek ' + (i + 1) + '?')) return;
+  dane.trasy.splice(i, 1);
+  rysujTrasy();
+  zapiszPozniej();
+}
+
+function rysujTrasy() {
+  const cialo = el('cialoTras');
+  cialo.innerHTML = dane.trasy.map((t, i) =>
+    '<tr>' +
+    '<td class="nrkom">' + (i + 1) + '</td>' +
+    '<td><input type="text" value="' + esc(t.od) + '" oninput="polTrasy(' + i + ',\'od\',this.value)"></td>' +
+    '<td><input type="text" value="' + esc(t.do) + '" oninput="polTrasy(' + i + ',\'do\',this.value)"></td>' +
+    '<td><select onchange="polTrasy(' + i + ',\'rodzaj\',this.value)">' + opcje(RODZAJE_TRAS, t.rodzaj) + '</select></td>' +
+    '<td><input type="number" step="0.1" value="' + esc(t.dlugosc) + '" oninput="polTrasy(' + i + ',\'dlugosc\',this.value)"></td>' +
+    '<td><select onchange="polTrasy(' + i + ',\'sposob\',this.value)">' + opcje(SPOSOBY, t.sposob) + '</select></td>' +
+    '<td><select onchange="polTrasy(' + i + ',\'koryto\',this.value)">' + opcje(KORYTA, t.koryto) + '</select></td>' +
+    '<td><input type="text" list="listaPrzewodow" value="' + esc(t.przewod) + '" oninput="polTrasy(' + i + ',\'przewod\',this.value)"></td>' +
+    '<td><textarea oninput="polTrasy(' + i + ',\'uwagi\',this.value)">' + esc(t.uwagi) + '</textarea></td>' +
+    '<td class="usunkom nodruku"><button class="btn sm r" onclick="usunTrase(' + i + ')">✕</button></td>' +
+    '</tr>').join('');
+  el('liczTras').innerText = podsumujTrasy();
+}
+
+function polTrasy(i, pole, wartosc) {
+  if (!dane.trasy[i]) return;
+  dane.trasy[i][pole] = wartosc;
+  if (pole === 'dlugosc') el('liczTras').innerText = podsumujTrasy();
+  zapiszPozniej();
+}
+
+// Suma metrów to liczba, którą i tak liczysz w głowie przy wycenie.
+function podsumujTrasy() {
+  const n = dane.trasy.length;
+  if (!n) return '';
+  const suma = dane.trasy.reduce((a, t) => a + (parseFloat(t.dlugosc) || 0), 0);
+  return n + ' odc. · razem ' + suma.toFixed(1) + ' m';
+}
+
+// --------------------------------------------------------------- przebicia
+function dodajPrzebicie() {
+  dane.przebicia.push({ miejsce: '', rodzaj: '', przegroda: '', wymiar: '', ilosc: '', kto: '', uwagi: '' });
+  rysujPrzebicia();
+  zapiszPozniej();
+}
+
+function usunPrzebicie(i) {
+  if (!confirm('Usunąć pozycję ' + (i + 1) + '?')) return;
+  dane.przebicia.splice(i, 1);
+  rysujPrzebicia();
+  zapiszPozniej();
+}
+
+function rysujPrzebicia() {
+  el('cialoPrzebic').innerHTML = dane.przebicia.map((p, i) =>
+    '<tr>' +
+    '<td class="nrkom">' + (i + 1) + '</td>' +
+    '<td><input type="text" value="' + esc(p.miejsce) + '" oninput="polPrzebicia(' + i + ',\'miejsce\',this.value)"></td>' +
+    '<td><select onchange="polPrzebicia(' + i + ',\'rodzaj\',this.value)">' + opcje(RODZAJE_PRZEBIC, p.rodzaj) + '</select></td>' +
+    '<td><select onchange="polPrzebicia(' + i + ',\'przegroda\',this.value)">' + opcje(PRZEGRODY, p.przegroda) + '</select></td>' +
+    '<td><input type="text" value="' + esc(p.wymiar) + '" oninput="polPrzebicia(' + i + ',\'wymiar\',this.value)"></td>' +
+    '<td><input type="number" value="' + esc(p.ilosc) + '" oninput="polPrzebicia(' + i + ',\'ilosc\',this.value)"></td>' +
+    '<td><select onchange="polPrzebicia(' + i + ',\'kto\',this.value)">' + opcje(WYKONAWCY, p.kto) + '</select></td>' +
+    '<td><textarea oninput="polPrzebicia(' + i + ',\'uwagi\',this.value)">' + esc(p.uwagi) + '</textarea></td>' +
+    '<td class="usunkom nodruku"><button class="btn sm r" onclick="usunPrzebicie(' + i + ')">✕</button></td>' +
+    '</tr>').join('');
+  el('liczPrzebic').innerText = dane.przebicia.length ? dane.przebicia.length + ' poz.' : '';
+}
+
+function polPrzebicia(i, pole, wartosc) {
+  if (!dane.przebicia[i]) return;
+  dane.przebicia[i][pole] = wartosc;
+  zapiszPozniej();
+}
+
+// --------------------------------------------------------------- zdjęcia
+const FOTO_MAX = 1600;
+const FOTO_JAKOSC = 0.72;
+
+// Zdjęcie z tabletu ma kilka megabajtów. W raporcie, który masz wysłać mailem,
+// nie ma to sensu - zmniejszamy od razu przy wgrywaniu.
+function zmniejsz(plik) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = () => reject(new Error('Nie udało się odczytać pliku.'));
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('To nie wygląda na zdjęcie.'));
+      img.onload = () => {
+        try {
+          const s = Math.min(1, FOTO_MAX / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * s));
+          const h = Math.max(1, Math.round(img.height * s));
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve({ src: c.toDataURL('image/jpeg', FOTO_JAKOSC), w: w, h: h });
+        } catch (e) { reject(e); }
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(plik);
+  });
+}
+
+async function dodajZdjecia(input) {
+  const pliki = Array.from(input.files || []);
+  input.value = '';
+  if (!pliki.length) return;
+  let bledy = 0;
+  for (const f of pliki) {
+    try {
+      const foto = await zmniejsz(f);
+      dane.zdjecia.push({ id: Date.now() + Math.random(), src: foto.src, opis: '', przypisanie: '' });
+    } catch (e) { bledy++; }
+  }
+  rysujGalerie();
+  zapisz();
+  if (bledy) alert(bledy + ' z ' + pliki.length + ' plików nie udało się wczytać.');
+}
+
+function usunZdjecie(i) {
+  if (!confirm('Usunąć to zdjęcie?')) return;
+  dane.zdjecia.splice(i, 1);
+  rysujGalerie();
+  zapisz();
+}
+
+function przesunZdjecie(i, krok) {
+  const j = i + krok;
+  if (j < 0 || j >= dane.zdjecia.length) return;
+  const t = dane.zdjecia[i];
+  dane.zdjecia[i] = dane.zdjecia[j];
+  dane.zdjecia[j] = t;
+  rysujGalerie();
+  zapiszPozniej();
+}
+
+function rysujGalerie() {
+  const g = el('galeria');
+  g.innerHTML = dane.zdjecia.map((z, i) =>
+    '<div class="fotka">' +
+    '<img src="' + z.src + '" alt="Zdjęcie ' + (i + 1) + '">' +
+    '<div class="op">' +
+    '<input type="text" placeholder="Opis zdjęcia ' + (i + 1) + '" value="' + esc(z.opis) + '" ' +
+      'oninput="polZdjecia(' + i + ',\'opis\',this.value)">' +
+    '<select class="nodruku" onchange="polZdjecia(' + i + ',\'przypisanie\',this.value)">' +
+      opcje(PRZYPISANIA, z.przypisanie) + '</select>' +
+    '<div class="nodruku" style="display:flex;gap:4px">' +
+      '<button class="btn sm" onclick="przesunZdjecie(' + i + ',-1)">←</button>' +
+      '<button class="btn sm" onclick="przesunZdjecie(' + i + ',1)">→</button>' +
+      '<button class="btn sm r" style="margin-left:auto" onclick="usunZdjecie(' + i + ')">✕</button>' +
+    '</div></div></div>').join('');
+  el('brakZdjec').style.display = dane.zdjecia.length ? 'none' : 'block';
+  el('liczZdjec').innerText = dane.zdjecia.length ? dane.zdjecia.length + ' szt.' : '';
+  el('rozmiarZdjec').innerText = dane.zdjecia.length ? ('~' + rozmiarMB().toFixed(1) + ' MB') : '';
+}
+
+function polZdjecia(i, pole, wartosc) {
+  if (!dane.zdjecia[i]) return;
+  dane.zdjecia[i][pole] = wartosc;
+  zapiszPozniej();
+}
+
+function rozmiarMB() {
+  let zn = 0;
+  dane.zdjecia.forEach(z => { zn += (z.src || '').length; });
+  dane.szkice.forEach(s => { zn += (s.src || '').length; });
+  return zn * 2 / 1024 / 1024;
+}
+
+// --------------------------------------------------------------- szkice
+let plotno, pctx;
+let trybRys = 'rysuj', kolorRys = '#212529';
+let rysuje = false, startRys = null, historiaRys = [];
+
+function initPlotno() {
+  plotno = el('plotno');
+  if (!plotno) return;
+  pctx = plotno.getContext('2d');
+  czyscPlotno();
+  setTrybRys('rysuj');
+
+  const poz = (e) => {
+    const r = plotno.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * plotno.width / r.width,
+             y: (e.clientY - r.top) * plotno.height / r.height };
+  };
+
+  plotno.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    plotno.setPointerCapture(e.pointerId);
+    startRys = poz(e);
+    if (trybRys === 'tekst') {
+      const t = prompt('Treść napisu:');
+      if (t) {
+        zapamietajStan();
+        pctx.fillStyle = kolorRys;
+        pctx.font = 'bold 26px Arial';
+        pctx.fillText(t, startRys.x, startRys.y);
+      }
+      startRys = null;
+      return;
+    }
+    zapamietajStan();
+    rysuje = true;
+    if (trybRys === 'rysuj' || trybRys === 'gumka') {
+      pctx.beginPath();
+      pctx.moveTo(startRys.x, startRys.y);
+    }
+  });
+
+  plotno.addEventListener('pointermove', e => {
+    if (!rysuje) return;
+    const p = poz(e);
+    if (trybRys === 'rysuj' || trybRys === 'gumka') {
+      pctx.strokeStyle = (trybRys === 'gumka') ? '#ffffff' : kolorRys;
+      pctx.lineWidth = (trybRys === 'gumka') ? 26 : 3;
+      pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+      pctx.lineTo(p.x, p.y);
+      pctx.stroke();
+    } else if (trybRys === 'linia') {
+      przywrocStan();
+      pctx.strokeStyle = kolorRys; pctx.lineWidth = 3; pctx.lineCap = 'round';
+      pctx.beginPath(); pctx.moveTo(startRys.x, startRys.y); pctx.lineTo(p.x, p.y); pctx.stroke();
+    }
+  });
+
+  const koniec = () => { rysuje = false; startRys = null; };
+  plotno.addEventListener('pointerup', koniec);
+  plotno.addEventListener('pointercancel', koniec);
+  plotno.addEventListener('pointerleave', koniec);
+}
+
+// Historia na potrzeby cofania i podglądu linii. Trzymamy ostatnie 20 stanów -
+// więcej nie ma sensu, a obrazy płótna ważą swoje.
+function zapamietajStan() {
+  try {
+    historiaRys.push(plotno.toDataURL('image/png'));
+    if (historiaRys.length > 20) historiaRys.shift();
+  } catch (e) {}
+}
+
+function przywrocStan() {
+  const ost = historiaRys[historiaRys.length - 1];
+  if (!ost) return;
+  const img = new Image();
+  img.onload = () => { pctx.clearRect(0, 0, plotno.width, plotno.height);
+                       pctx.drawImage(img, 0, 0); };
+  img.src = ost;
+}
+
+function cofnijRys() {
+  const ost = historiaRys.pop();
+  if (!ost) { czyscPlotno(); return; }
+  const img = new Image();
+  img.onload = () => {
+    pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, plotno.width, plotno.height);
+    pctx.drawImage(img, 0, 0);
+  };
+  img.src = ost;
+}
+
+function czyscPlotno() {
+  if (!pctx) return;
+  pctx.fillStyle = '#ffffff';
+  pctx.fillRect(0, 0, plotno.width, plotno.height);
+  historiaRys = [];
+}
+
+function setTrybRys(t) {
+  trybRys = t;
+  [['rysuj', 'nTrybRys'], ['linia', 'nTrybLin'], ['tekst', 'nTrybTekst'], ['gumka', 'nTrybGum']]
+    .forEach(([k, id]) => {
+      const b = el(id);
+      if (b) b.classList.toggle('d', k === t);
+    });
+}
+
+function setKolor(k, elem) {
+  kolorRys = k;
+  document.querySelectorAll('.kolor').forEach(x => x.classList.remove('on'));
+  if (elem) elem.classList.add('on');
+}
+
+// Czy na płótnie cokolwiek jest - żeby nie dodawać do raportu pustych kartek.
+function plotnoPuste() {
+  try {
+    const d = pctx.getImageData(0, 0, plotno.width, plotno.height).data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] !== 255 || d[i + 1] !== 255 || d[i + 2] !== 255) return false;
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
+function zapiszSzkic() {
+  if (plotnoPuste()) { alert('Płótno jest puste — nie ma czego dodać.'); return; }
+  const opis = prompt('Podpis szkicu:', '') || '';
+  dane.szkice.push({ id: Date.now(), src: plotno.toDataURL('image/png'), opis: opis });
+  czyscPlotno();
+  rysujSzkice();
+  zapisz();
+}
+
+async function wgrajSzkice(input) {
+  const pliki = Array.from(input.files || []);
+  input.value = '';
+  for (const f of pliki) {
+    try {
+      const foto = await zmniejsz(f);
+      dane.szkice.push({ id: Date.now() + Math.random(), src: foto.src,
+                         opis: (f.name || '').replace(/\.[^.]+$/, '') });
+    } catch (e) {}
+  }
+  rysujSzkice();
+  zapisz();
+}
+
+function usunSzkic(i) {
+  if (!confirm('Usunąć szkic?')) return;
+  dane.szkice.splice(i, 1);
+  rysujSzkice();
+  zapisz();
+}
+
+function rysujSzkice() {
+  const box = el('listaSzkicow');
+  if (!dane.szkice.length) {
+    box.innerHTML = '<div class="pusto nodruku">Brak szkiców.</div>';
+  } else {
+    box.innerHTML = dane.szkice.map((s, i) =>
+      '<div class="fotka" style="margin-bottom:10px">' +
+      '<img src="' + s.src + '" style="height:auto;max-height:360px;object-fit:contain" alt="Szkic ' + (i + 1) + '">' +
+      '<div class="op"><input type="text" placeholder="Podpis szkicu ' + (i + 1) + '" value="' + esc(s.opis) + '" ' +
+      'oninput="polSzkicu(' + i + ',this.value)">' +
+      '<button class="btn sm r nodruku" onclick="usunSzkic(' + i + ')">✕ Usuń szkic</button>' +
+      '</div></div>').join('');
+  }
+  el('liczSzkicow').innerText = dane.szkice.length ? dane.szkice.length + ' szt.' : '';
+}
+
+function polSzkicu(i, v) {
+  if (!dane.szkice[i]) return;
+  dane.szkice[i].opis = v;
+  zapiszPozniej();
+}
+
+// --------------------------------------------------------------- zapis w przeglądarce
+// IndexedDB, bo zdjęcia nie mieszczą się w localStorage (~5 MB na wszystko).
+const DB_NAZWA = 'wizjaLokalna';
+const DB_STORE = 'dokumenty';
+const DB_KLUCZ = 'biezacy';
+let baza = null;
+
+function otworzBaze() {
+  return new Promise(resolve => {
+    if (!window.indexedDB) { resolve(null); return; }
+    try {
+      const r = indexedDB.open(DB_NAZWA, 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore(DB_STORE); };
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
+  });
+}
+
+let timerZapisu = null;
+function zapiszPozniej() {
+  if (timerZapisu) clearTimeout(timerZapisu);
+  timerZapisu = setTimeout(zapisz, 600);
+}
+
+async function zapisz() {
+  dane.zapisano = new Date().toISOString();
+  let ok = false;
+  if (baza) {
+    ok = await new Promise(res => {
+      try {
+        const tx = baza.transaction(DB_STORE, 'readwrite');
+        tx.objectStore(DB_STORE).put(dane, DB_KLUCZ);
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => res(false);
+      } catch (e) { res(false); }
+    });
+  }
+  if (!ok) {
+    // Zapas na wypadek prywatnego okna albo zablokowanej bazy. Zdjęcia się tam
+    // nie zmieszczą, ale sam formularz owszem - lepsze to niż utrata wpisów.
+    try {
+      localStorage.setItem(DB_NAZWA, JSON.stringify(
+        Object.assign({}, dane, { zdjecia: [], szkice: [] })));
+      ok = true;
+    } catch (e) { ok = false; }
+  }
+  const s = el('stanZapisu');
+  if (s) s.innerText = ok
+    ? ('zapisano ' + new Date().toLocaleTimeString('pl-PL').slice(0, 5))
+    : '⚠️ brak zapisu — zapisz plik';
+}
+
+async function wczytajZPamieci() {
+  if (baza) {
+    const z = await new Promise(res => {
+      try {
+        const tx = baza.transaction(DB_STORE, 'readonly');
+        const q = tx.objectStore(DB_STORE).get(DB_KLUCZ);
+        q.onsuccess = () => res(q.result || null);
+        q.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+    if (z) return zastosuj(z);
+  }
+  try {
+    const raw = localStorage.getItem(DB_NAZWA);
+    if (raw) return zastosuj(JSON.parse(raw));
+  } catch (e) {}
+  return false;
+}
+
+// Wczytanie dokumentu z dowolnego źródła. Braki uzupełniamy, żeby plik
+// zapisany starszą wersją aplikacji otworzył się bez błędu.
+function zastosuj(z) {
+  if (!z || typeof z !== 'object') return false;
+  dane = Object.assign(pustyDokument(), z);
+  dane.pola = dane.pola || {};
+  dane.wybory = dane.wybory || {};
+  ['trasy', 'przebicia', 'zdjecia', 'szkice'].forEach(k => {
+    if (!Array.isArray(dane[k])) dane[k] = [];
+  });
+  return true;
+}
+
+// --------------------------------------------------------------- plik JSON
+function bezpiecznaNazwa(s) {
+  return String(s || '').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_').slice(0, 60);
+}
+
+function nazwaDokumentu() {
+  const a = bezpiecznaNazwa(dane.pola.inwestor || dane.pola.adres || 'wizja');
+  const d = dane.pola.data || new Date().toISOString().slice(0, 10);
+  return 'wizja_' + (a || 'lokalna') + '_' + d;
+}
+
+function zapiszPlik() {
+  const blob = new Blob([JSON.stringify(dane, null, 1)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nazwaDokumentu() + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+}
+
+function wczytajZPliku(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let z;
+    try { z = JSON.parse(r.result); }
+    catch (e) { alert('Nie udało się odczytać pliku — to nie jest zapis wizji lokalnej.'); return; }
+    if (!z || z.format !== 'wizja-lokalna') {
+      if (!confirm('Ten plik nie wygląda na zapis wizji lokalnej. Spróbować mimo to?')) return;
+    }
+    if (!confirm('Wczytać ten dokument?\n\nBieżący zostanie zastąpiony.')) return;
+    if (!zastosuj(z)) { alert('Nie udało się wczytać dokumentu.'); return; }
+    odswiezWszystko();
+    zapisz();
+  };
+  r.readAsText(f);
+}
+
+function nowaWizja() {
+  if (!confirm('Zacząć nową wizję?\n\nBieżąca zniknie z przeglądarki — jeśli ma zostać, najpierw zapisz ją do pliku.')) return;
+  dane = pustyDokument();
+  dane.pola.data = new Date().toISOString().slice(0, 10);
+  odswiezWszystko();
+  zapisz();
+}
+
+// --------------------------------------------------------------- wydruk / PDF
+// Pola tekstowe mają stałą wysokość i na wydruku ucinałyby treść w połowie
+// zdania. Przed drukiem rozciągamy je do pełnej wysokości, po - wracamy.
+function rozciagnijPolaTekstowe(wlacz) {
+  document.querySelectorAll('textarea').forEach(t => {
+    if (wlacz) {
+      // Znacznik jest konieczny: bez niego drugie wywolanie z rzedu zapisuje
+      // jako "pierwotna" juz rozciagnieta wysokosc i pole nigdy nie wraca
+      // do swojego rozmiaru. Zdarza sie to, gdy przegladarka nie wywola
+      // afterprint i zadziala zapasowy timer.
+      if (t.dataset.rozciagniete === '1') return;
+      t.dataset.rozciagniete = '1';
+      t.dataset.wys = t.style.height || '';
+      t.style.height = 'auto';
+      t.style.height = (t.scrollHeight + 4) + 'px';
+    } else {
+      if (t.dataset.rozciagniete !== '1') return;
+      t.style.height = t.dataset.wys || '';
+      delete t.dataset.rozciagniete;
+    }
+  });
+}
+
+function stopkaWydruku() {
+  const s = el('stopkaDruk');
+  if (!s) return;
+  const kiedy = new Date().toLocaleString('pl-PL');
+  s.innerText = 'Wizja lokalna — ' + (dane.pola.adres || '') +
+    ' · wydruk ' + kiedy +
+    ' · zdjęć: ' + dane.zdjecia.length + ', szkiców: ' + dane.szkice.length;
+}
+
+function drukujPdf() {
+  stopkaWydruku();
+  rozciagnijPolaTekstowe(true);
+  const wroc = () => { rozciagnijPolaTekstowe(false); window.removeEventListener('afterprint', wroc); };
+  window.addEventListener('afterprint', wroc);
+  setTimeout(() => {
+    window.print();
+    // część przeglądarek na Androidzie nie wywołuje afterprint
+    setTimeout(() => rozciagnijPolaTekstowe(false), 3000);
+  }, 120);
+}
+
+// --------------------------------------------------------------- odświeżenie
+function odswiezWszystko() {
+  wypelnijPola();
+  odswiezWszystkieWybory();
+  rysujTrasy();
+  rysujPrzebicia();
+  rysujGalerie();
+  rysujSzkice();
+}
+
+// --------------------------------------------------------------- start
+async function start() {
+  const dl = document.createElement('datalist');
+  dl.id = 'listaPrzewodow';
+  dl.innerHTML = PRZEWODY.map(p => '<option value="' + esc(p) + '">').join('');
+  document.body.appendChild(dl);
+
+  zbudujWybory();
+  podepnijPola();
+  initPlotno();
+
+  baza = await otworzBaze();
+  const bylo = await wczytajZPamieci();
+  if (!bylo) {
+    dane.pola.data = new Date().toISOString().slice(0, 10);
+    // Dwa odcinki i jedna pozycja na start - pusta tabela na tablecie
+    // wygląda jakby nie działała.
+    dane.trasy = [pustaTrasa(), pustaTrasa()];
+    dane.przebicia = [{ miejsce: '', rodzaj: '', przegroda: '', wymiar: '', ilosc: '', kto: '', uwagi: '' }];
+  }
+  odswiezWszystko();
+  const s = el('stanZapisu');
+  if (s && bylo) s.innerText = 'wczytano zapis';
+}
+
+if (typeof window !== 'undefined') {
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+  window.addEventListener('DOMContentLoaded', start);
+}
+
+</script>
+</body>
+</html>
